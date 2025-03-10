@@ -18,3 +18,5 @@ futures-core = "0.3.31"
 pin-project-lite = "0.2.16"
 tokio-util =  { version = "0.7.13", features = ["io"] }
 futures-util = "0.3"
+http-body = "1.0.1"
+http = "1.2.0"

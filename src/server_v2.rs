@@ -4,7 +4,7 @@ use axum::BoxError;
 use axum::{
     body::Body,
     debug_handler,
-    extract::{Request, Json, Path, Extension, Query},
+    extract::{Extension, Json, Path, Query, Request},
     http::{header, StatusCode},
     response::{IntoResponse, Response},
     routing::{get, post},
@@ -17,6 +17,8 @@ use tokio::fs::{self, File};
 use tokio::io;
 use tokio::io::AsyncRead;
 use tokio::io::ReadBuf;
+
+use crate::download;
 pub struct Server {}
 
 impl Server {
@@ -33,19 +35,20 @@ impl Server {
         let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
         axum::serve(listener, app).await.unwrap();
     }
-
-
 }
 
 #[debug_handler]
 async fn mirror(
-    Path((repo, arch, file_name)): Path<(String, String,  String)>,
+    Path((repo, arch, file_name)): Path<(String, String, String)>,
     // Path((repo, arch, file_name)): Path<(String, String, String)>,
 ) -> impl IntoResponse {
-    let file = fs::File::open("/home/dev/core.db").await.unwrap();
+    println!("repo {repo} arch {arch} file_name {file_name}");
+    
+    let pd_manager = download::PackageDownloadManager::new();
+    let pack_downloder = pd_manager.download(&repo, &arch, &file_name);
 
     // let buf_stream = BufStream::new(file);
-    return FileResponse::new(StreamBufReader::new(file), "test");
+    return FileResponse::new(StreamBufReader::new(pack_downloder), "test");
 }
 
 struct FileResponse<S: TryStream> {
